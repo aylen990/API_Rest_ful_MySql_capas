@@ -1,70 +1,63 @@
+import pool from '../../config/conexion.js'
+
+import * as model from '../models/users.models.js'
+
 export const getAllUsers = async (req, res) => {
-    const sql = "SELECT * FROM users";
-    try {
-        const connection = await pool.getConnection();
-        const [rows] = await connection.query(sql);
-        connection.release(); //libera conexion   
-        res.json(rows)
-    } catch (error) {
-        res.status(500).send('ERROR, no se pudo realizar la consulta')
+    const rows = await model.getAllUsers()
+
+    if(rows.errno){
+        return res.status(500).send('ERROR, en consulta, cod:' + rows.errno)
     }
+
+    res.json(rows)
+    res.status(201).send(`Usuario creado con id ${rows.insertId}`)
 }
+
+    // const sql = "SELECT * FROM users";
+    // try {
+    //     const connection = await pool.getConnection();
+    //     const [rows] = await connection.query(sql);
+    //     connection.release(); //libera conexion   
+    //     res.json(rows)
+    // } catch (error) {
+    //     // res.status(500).send('ERROR, no se pudo realizar la consulta')
+    // }
+// }
 
 export const getUserById = async (req, res) => {
     const id = parseInt(req.params.id)
     console.log(id)
-    const sql = "SELECT * FROM users WHERE ID_user = ?";
-    try {
-        const connection = await pool.getConnection();
-        const [rows] = await connection.query(sql, [id]);
-        //hay que pasale el sql y el dato que reemplaza el signo ?
-
-        (rows[0]) ? res.json(rows[0]) : res.send('El usuario no existe')
-        //rows devuelve un array que contiene un objeto, con [0] tomo solo el objeto  
-        connection.release();
-    } catch (error) {
-        res.status(500).send('ERROR, no se pudo realizar la consulta')
-    }
+    ikol(rows[0]) ? res.json(rows[0]) : res.send('El usuario no existe')
 }
 
 export const createUser = async (req, res) => {
     const values = req.body
-    // console.log(values)
+    const rows = await model.createUser(values)
 
-    // const sql = "INSERT INTO users (Name, Email, Image, Pass, Type_user) VALUES (?,?,?,?,?)";
-    const sql = 'INSERT INTO users SET ?'; //equivalente a lo de arriba
-    try {
-        const connection = await pool.getConnection();
-        const [rows] = await connection.query(sql, [values]); 
-        //hay que pasale el sql y el dato que reemplaza el signo ?
-
-        connection.release();
-
-        console.log(rows)
-         //rows devuelve muchos datos entre ellos el id creado que lo uso para el send, insertId
-        res.status(201).send(`Usuario Creado con id ${rows.insertId}`)
-    } catch (error) {
-        res.status(500).send('ERROR, no se pudo realizar la consulta')
+    if(rows.errno){
+        return res.status(500).send('ERROR, en consulta, cod:' + rows.errno)
     }
+
+    res.json(rows)
+    res.status(201).send(`Usuario creado con id ${rows.insertId}`)
+    // const sql = "INSERT INTO users (Name, Email, Image, Pass, Type_user) VALUES (?,?,?,?,?)";
+
 }
 
 export const updateUser = async (req, res) => {
     const id = req.params.id
     const values = req.body
-    // console.log(values)
+    const rows = await model.updateUser(values, id)
 
-    const sql = 'UPDATE users SET ? WHERE ID_user = ?';
-    try {
-        const connection = await pool.getConnection();
-        const [rows] = await connection.query(sql, [values, id]); 
-        connection.release();
-        // console.log(rows)
-        // console.info(rows.affectedRows)
-        if (rows.affectedRows == 0) { return res.send('Usuario no existe') }
-        res.send('Usuario actualizado')
-    } catch (error) {
-        res.status(500).send('ERROR, no se pudo realizar la consulta')
+    if (rows.errno) {
+        return res.status(500).send("Error en consulta, cod: " + rows.errno)
     }
+
+    if (rows.affectedRows == 0) {
+        return res.send("Usuario no existe")
+    }
+
+    return res.send("usuario actualizado")
 }
 
 export const deleteUser =  async (req, res) => {
