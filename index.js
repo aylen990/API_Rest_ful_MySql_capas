@@ -10,6 +10,9 @@ app.use(express.json())
 import usersRoutes from './src/routes/users.routes.js'
 app.use(usersRoutes)
 
+import productRoutes from './src/routes/products.routes.js'
+app.use(productRoutes)
+
 //pag inicio
 app.get('/', async (req, res) => {
     res.send('API REST ful con MySQL')
